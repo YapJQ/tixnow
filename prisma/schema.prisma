@@ -1,0 +1,37 @@
+// SQLite keeps local setup to zero steps. To move to Postgres, change the
+// provider to "postgresql" and point DATABASE_URL at your database.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  passwordHash  String
+  // Null until the user confirms their email. Only enforced when
+  // REQUIRE_EMAIL_VERIFICATION=true (see src/lib/config.ts).
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  events        Event[]
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  venue       String
+  startsAt    DateTime
+  priceCents  Int
+  capacity    Int
+  organizerId String
+  organizer   User     @relation(fields: [organizerId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([startsAt])
+}
